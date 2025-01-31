@@ -6,3 +6,4 @@ torch
 pillow
 psutil
 ultralytics
+flask-cors

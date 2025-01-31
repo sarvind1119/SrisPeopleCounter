@@ -1,4 +1,5 @@
 import tkinter as tk
+from flask_cors import CORS
 from tkinter import ttk
 import cv2
 import numpy as np
@@ -849,7 +850,7 @@ import threading
 
 # Initialize Flask API
 app = Flask(__name__)
-
+CORS(app)  # Enables CORS so that other devices can access the API
 # API Route to get real-time mess occupancy data
 @app.route('/api/mess_occupancy', methods=['GET'])
 def get_mess_data():

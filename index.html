@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mess Occupancy Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        h1 {
+            color: #333;
+        }
+        #mess-data {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+        .status {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .green { background-color: #4CAF50; color: white; }
+        .orange { background-color: #FFA500; color: white; }
+        .red { background-color: #FF3333; color: white; }
+        .grey { background-color: #808080; color: white; }
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Mess Occupancy Status</h1>
+        <div id="mess-data">Loading...</div>
+        <div id="status-box" class="status grey">Fetching Data...</div>
+    </div>
+
+    <div class="footer">
+        Last updated: <span id="last-updated">--</span>
+    </div>
+
+    <script>
+        function fetchMessData() {
+            fetch("http://192.168.4.85:5000/api/mess_occupancy")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("mess-data").innerHTML = `
+                        <p><strong>Max Capacity:</strong> ${data.max_capacity}</p>
+                        <p><strong>Current Occupancy:</strong> ${((data.capacity_percentage / 100) * data.max_capacity).toFixed(0)}</p>
+                        <p><strong>Capacity Used:</strong> ${data.capacity_percentage.toFixed(2)}%</p>
+                    `;
+
+                    document.getElementById("last-updated").innerText = data.last_updated;
+
+                    let statusBox = document.getElementById("status-box");
+                    if (data.capacity_percentage < 50) {
+                        statusBox.innerText = "Plenty of seats available!";
+                        statusBox.className = "status green";
+                    } else if (data.capacity_percentage >= 50 && data.capacity_percentage < 80) {
+                        statusBox.innerText = "Seats filling up!";
+                        statusBox.className = "status orange";
+                    } else {
+                        statusBox.innerText = "Mess is almost full!";
+                        statusBox.className = "status red";
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching data:", err);
+                    document.getElementById("mess-data").innerHTML = `<p style="color: red;">Error fetching data. Please try again later.</p>`;
+                    document.getElementById("status-box").innerText = "Unable to fetch data";
+                    document.getElementById("status-box").className = "status grey";
+                });
+        }
+
+        // Fetch data every 10 seconds automatically
+        setInterval(fetchMessData, 10000);
+        
+        // Initial Fetch
+        fetchMessData();
+    </script>
+
+</body>
+</html>
